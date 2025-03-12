@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorem Ipsum Generator</title>
+
+  <!--  Using a local stylesheet.  Better for GH Pages and performance -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <div class="container">
+    <h1>Lorem Ipsum Generator</h1>
+
+    <div class="input-group">
+      <label for="language">Language:</label>
+      <select id="language">
+        <option value="latin">Latin</option>
+        <option value="bengali">Bengali</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="generationType">Generation Type:</label>
+      <select id="generationType">
+        <option value="paragraphs">Paragraphs</option>
+        <option value="words">Words</option>
+        <option value="characters">Characters</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="number">Number:</label>
+      <input type="number" id="number" value="5" min="1">
+    </div>
+
+     <div class="input-group">
+      <label for="outputType">Output:</label>
+      <select id="outputType">
+        <option value="text">Text</option>
+        <option value="html">HTML</option>
+      </select>
+    </div>
+
+
+    <div class="button-group">
+      <button id="generateBtn">Generate</button>
+      <button id="copyBtn">Copy</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="generated-text" id="lorem-ipsum-output" aria-live="polite">
+      <!-- Lorem Ipsum will be inserted here -->
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
