@@ -1,0 +1,902 @@
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Existing Styles (No changes here) */
+        .container {
+            display: flex;
+            width: 100%;
+            background-color: var(--bodyB);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            max-width: 70%;
+            margin-bottom: 10px;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 20px;
+            border-left: 1px solid #eee;
+        }
+
+
+        .scrollmenu {
+            cursor: grab;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            padding: 0 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scrollmenu::-webkit-scrollbar {
+            display: none;
+        }
+
+
+        .scrollmenu .menu-item {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            /* Adjusted text color */
+            text-align: center;
+            padding: 5px 7px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            min-width: 75px;
+            margin-right: 5px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .scrollmenu .menu-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .scrollmenu .menu-item.active {
+            background-color: #3cb371;
+            color: white;
+        }
+
+        .scrollmenu .menu-item i {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            color: var(--headerC);
+            background-color: transparent;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Important for width to include padding */
+            resize: vertical;
+            /* Allow vertical resizing for textarea */
+        }
+
+        .qr-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #qrcode-container {
+            margin-bottom: 10px;
+            position: relative;
+            /* For the loading overlay */
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .action-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .action-button:hover {
+            background-color: #ccc;
+        }
+
+        .qr-styles {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+        }
+
+        .qr-style-option {
+            margin-bottom: 5px;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        .qr-style-option:hover {
+            border: 1px solid #ccc;
+        }
+
+
+        #qrcode-container canvas {
+            width: 256px;
+            height: 256px;
+        }
+
+        .dynamic-link {
+            text-align: right;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .dynamic-link:hover {
+            text-decoration: underline;
+            display: none;
+        }
+
+        /* Style Adjustments for icons */
+        .icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            /* Ensures the image is not distorted */
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .icon-button:hover {
+            opacity: 0.8;
+            /* Slightly dim on hover */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Loading overlay styles */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: #333;
+            border-radius: 5px;
+            /* Make sure it's on top of everything */
+            z-index: 10;
+        }
+
+        .loading-overlay i {
+            margin-right: 10px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #qrcode-placeholder {
+            width: 193px;
+            height: 193px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #aaa;
+            border: 1px dashed #ccc;
+            margin-bottom: 10px;
+        }
+
+        /*Placeholder text bigger */
+        #qrcode-placeholder span {
+            font-size: 14px;
+        }
+
+        .input-actions {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 10px;
+        }
+
+        .input-actions button {
+            padding: 8px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #ddd;
+            margin-right: 10px;
+        }
+
+        .input-actions button:hover {
+            background-color: #ccc;
+        }
+
+        /* Added styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .qr-type-buttons {
+            display: flex;
+            flex-wrap: nowrap;
+            /* Prevent wrapping */
+            overflow-x: auto;
+            /* Enable horizontal scroll */
+            gap: 10px;
+            margin-bottom: 20px;
+            /* Add padding to prevent content from being hidden */
+            padding: 0 10px;
+
+        }
+
+        .qr-type-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        .qr-type-button.active {
+            background-color: #3cb371;
+            color: white;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        /* Style for the Generate QR Code button */
+        #generate-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        #generate-button:hover {
+            background-color: #3e8e41;
+        }
+
+        /* Style for the Reset button */
+        #reset-button {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: black;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #reset-button:hover {
+            background-color: #ddd;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: flex-start;
+            /* Align items to the start */
+            align-items: center;
+            /* Vertically center items */
+            margin-top: 10px;
+        }
+
+        .download-button {
+            display: none;
+            /* Hidden by default */
+        }
+
+        .generated .download-button {
+            display: inline-block;
+            /* Show only when QR code is generated */
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--darkL);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .generated .download-button:hover {
+            background-color: #ccc;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .left-panel {
+                max-width: 100%;
+                margin-right: 0;
+            }
+
+            .right-panel {
+                border-left: none;
+                width: 100%;
+            }
+
+            .action-buttons {
+                justify-content: center;
+                /* Center buttons on smaller screens */
+            }
+
+            #qrcode-container canvas {
+                width: 160px;
+                /* Adjusted canvas width */
+                height: 160px;
+                /* Adjusted canvas height */
+            }
+
+            #qrcode-placeholder {
+                width: 160px;
+                /* Adjusted placeholder width */
+                height: 160px;
+                /* Adjusted placeholder height */
+            }
+
+        }
+
+        @media (max-width: 576px) {
+            .scrollmenu .menu-item {
+                padding: 8px 10px;
+            }
+
+            .scrollmenu .menu-item i {
+                font-size: 14px;
+                /* Further reduce icon size */
+            }
+
+
+        }
+    </style>
+
+    <div class="container">
+        <div class="left-panel">
+
+            <!--  scrollmenu Class Added Here -->
+            <div class="scrollmenu">
+                <button class="menu-item active" data-type="url">
+                    <i class="fas fa-link"></i>
+                    URL
+                </button>
+                <button class="menu-item" data-type="text">
+                    <i class="fas fa-align-left"></i>
+                    Text
+                </button>
+                <button class="menu-item" data-type="email">
+                    <i class="fas fa-envelope"></i>
+                    E-mail
+                </button>
+                <button class="menu-item" data-type="sms">
+                    <i class="fas fa-sms"></i>
+                    SMS
+                </button>
+                <button class="menu-item" data-type="wifi">
+                    <i class="fas fa-wifi"></i>
+                    Wi-Fi
+                </button>
+                <button class="menu-item" data-type="bitcoin">
+                    <i class="fas fa-bitcoin"></i>
+                    Bitcoin
+                </button>
+                <button class="menu-item" data-type="twitter">
+                    <i class="fab fa-twitter"></i>
+                    Twitter
+                </button>
+                <button class="menu-item" data-type="facebook">
+                    <i class="fab fa-facebook"></i>
+                    Facebook
+                </button>
+                <button class="menu-item" data-type="vcard">
+                    <i class="fas fa-address-card"></i>
+                    vCard
+                </button>
+            </div>
+
+            <div id="input-fields">
+                <div id="url-fields" class="form-group">
+                    <label for="input-url">URL:</label>
+                    <input type="text" id="input-url" placeholder="Enter URL (e.g., https://www.example.com)">
+                </div>
+
+                <div id="text-fields" class="form-group" style="display: none;">
+                    <label for="input-text">Text:</label>
+                    <input type="text" id="input-text" placeholder="Enter Text">
+                </div>
+
+                <div id="email-fields" class="form-group" style="display: none;">
+                    <label for="input-email">E-mail Address:</label>
+                    <input type="email" id="input-email" placeholder="Enter E-mail Address">
+                </div>
+
+                <div id="sms-fields" class="form-group" style="display: none;">
+                    <label for="input-sms">Phone Number:</label>
+                    <input type="tel" id="input-sms" placeholder="Enter Phone Number (e.g., 123-456-7890)">
+                </div>
+
+                <div id="wifi-fields" class="form-group" style="display: none;">
+                    <label for="input-wifi-ssid">Wi-Fi SSID:</label>
+                    <input type="text" id="input-wifi-ssid" placeholder="Enter Wi-Fi SSID">
+                    <label for="input-wifi-password">Wi-Fi Password:</label>
+                    <input type="password" id="input-wifi-password" placeholder="Enter Wi-Fi Password">
+                </div>
+
+                <div id="bitcoin-fields" class="form-group" style="display: none;">
+                    <label for="input-bitcoin">Bitcoin Address:</label>
+                    <input type="text" id="input-bitcoin" placeholder="Enter Bitcoin Address">
+                </div>
+
+                <div id="twitter-fields" class="form-group" style="display: none;">
+                    <label for="input-twitter">Twitter Username:</label>
+                    <input type="text" id="input-twitter" placeholder="Enter Twitter Username (without @)">
+                </div>
+
+                <div id="facebook-fields" class="form-group" style="display: none;">
+                    <label for="input-facebook">Facebook Page URL:</label>
+                    <input type="text" id="input-facebook" placeholder="Enter Facebook Page URL">
+                </div>
+
+                <div id="vcard-fields" class="form-group" style="display: none;">
+                    <label for="input-vcard">vCard Data (JSON):</label>
+                    <textarea id="input-vcard"
+                        placeholder='Enter vCard data in JSON format (e.g., {"firstName": "John", "lastName": "Doe", "email": "john.doe@example.com"})'
+                        rows="4"></textarea>
+                    <p>Example:
+                        <code>{"firstName": "John", "lastName": "Doe", "email": "john.doe@example.com", "phone": "123-456-7890"}</code>
+                    </p>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button id="generate-button">Generate QR Code</button>
+                <button id="reset-button">Reset</button>
+            </div>
+
+            <p class="error-message" id="error-message"></p>
+        </div>
+
+        <div class="right-panel qr-code-container">
+            <div id="qrcode-container">
+                <div id="qrcode-placeholder"><span>Placeholder QR Code</span></div>
+                <!-- QR Code will be displayed here -->
+                <!-- Add loading overlay inside qrcode-container -->
+                <div class="loading-overlay hidden">
+                    <i class="fas fa-spinner fa-spin"></i> Generating QR Code...
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-button download-button" id="download-button">Download PNG</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM is ready!");
+
+    const qrTypeButtons = document.querySelectorAll(".menu-item");
+    const inputFields = document.getElementById("input-fields");
+    const generateButton = document.getElementById("generate-button");
+    const resetButton = document.getElementById("reset-button");
+    const qrcodeContainer = document.getElementById("qrcode-container");
+    const qrcodePlaceholder = document.getElementById("qrcode-placeholder");
+    const errorMessage = document.getElementById("error-message");
+    const downloadButton = document.getElementById("download-button");
+    const loadingOverlay = qrcodeContainer.querySelector(".loading-overlay");
+	const scrollmenu = document.querySelector(".scrollmenu"); // Get the scrollmenu element
+    let selectedType = "url";
+    let qrcodeInstance = null;
+    let inputElements = {}; // Store input elements for each type
+
+    // Store original placeholders
+    let originalPlaceholders = {};
+
+    // Function to store input elements for each type
+    function storeInputElements() {
+        const fieldsets = inputFields.querySelectorAll(".form-group");
+        fieldsets.forEach(fieldset => {
+            const type = fieldset.id.replace("-fields", "");
+            inputElements[type] = fieldset.querySelector("input, textarea"); // Handle both input and textarea
+            // Store original placeholders
+            if (inputElements[type]) {
+                originalPlaceholders[type] = inputElements[type].placeholder;
+            }
+        });
+    }
+
+    // Call the function to store input elements
+    storeInputElements();
+
+
+    function showHideFields(type) {
+        const fieldsets = inputFields.querySelectorAll(".form-group");
+        fieldsets.forEach(fieldset => fieldset.style.display = "none");
+        document.getElementById(type + "-fields").style.display = "block";
+    }
+
+    function activateButton(button) {
+        qrTypeButtons.forEach(btn => {
+            btn.classList.remove("active");
+        });
+        button.classList.add("active");
+        selectedType = button.dataset.type;
+        showHideFields(selectedType);
+    }
+
+    qrTypeButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            activateButton(this);
+        });
+    });
+
+    showHideFields(selectedType);
+
+    function showLoading() {
+        loadingOverlay.classList.remove("hidden");
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.add("hidden");
+    }
+
+    // Validation function that sets error messages and keeps placeholders
+    function validateInput(type, data) {
+        let isValid = true;
+        let message = "";
+        let inputElement = inputElements[type]; // Use the stored input element
+
+        switch (type) {
+            case "url":
+                if (!isValidURL(data)) {
+                    isValid = false;
+                    message = "Invalid URL.";
+                }
+                break;
+            case "text":
+                if (!data) {
+                    isValid = false;
+                    message = "Please enter text.";
+                }
+                break;
+            case "email":
+                if (!isValidEmail(data)) {
+                    isValid = false;
+                    message = "Invalid E-mail Address.";
+                }
+                break;
+            case "twitter":
+                if (!data) {
+                    isValid = false;
+                    message = "Please enter Twitter username.";
+                }
+                break;
+            case "facebook":
+                if (!isValidURL(data)) {
+                    isValid = false;
+                    message = "Invalid Facebook URL.";
+                }
+                break;
+            case "wifi":
+                if (!document.getElementById("input-wifi-ssid").value) {
+                    isValid = false;
+                    message = "Please enter Wi-Fi SSID.";
+                }
+                break;
+            case "vcard":
+                try {
+                    JSON.parse(data);
+                } catch (e) {
+                    isValid = false;
+                    message = "Invalid vCard JSON: " + e.message;
+                }
+                break;
+            // Other validations...
+        }
+
+        if (!isValid) {
+            errorMessage.textContent = message;
+
+            //Replaces the placeholder if there is an error
+            if (inputElement) {
+                inputElement.placeholder = originalPlaceholders[type];
+            }
+        }
+        return isValid;
+    }
+
+
+    generateButton.addEventListener("click", function () {
+        let data = "";
+        qrcodeContainer.innerHTML = "";
+        qrcodeContainer.appendChild(qrcodePlaceholder); // Restore the placeholder
+        errorMessage.textContent = "";
+
+        let inputElement = inputElements[selectedType];  // Get the input element for selected type
+
+        switch (selectedType) {
+            case "url":
+                data = document.getElementById("input-url").value;
+                break;
+            case "text":
+                data = document.getElementById("input-text").value;
+                break;
+            case "email":
+                data = document.getElementById("input-email").value;
+                break;
+            case "sms":
+                data = document.getElementById("input-sms").value;
+                break;
+            case "wifi":
+                let ssid = document.getElementById("input-wifi-ssid").value;
+                let password = document.getElementById("input-wifi-password").value;
+                data = "WIFI:S:" + ssid + ";T:WPA;P:" + password + ";;";
+                break;
+            case "bitcoin":
+                data = document.getElementById("input-bitcoin").value;
+                break;
+            case "twitter":
+                data = document.getElementById("input-twitter").value;
+                break;
+            case "facebook":
+                data = document.getElementById("input-facebook").value;
+                break;
+            case "vcard":
+                data = document.getElementById("input-vcard").value;
+                break;
+        }
+
+
+        if (!data && selectedType !== "wifi") {
+            errorMessage.textContent = "Please enter the required data.";
+            return;
+        }
+
+        if (selectedType === "email") {
+            if (!validateInput(selectedType, document.getElementById("input-email").value)) {
+                return;
+            }
+            data = "mailto:" + document.getElementById("input-email").value;
+        } else if (selectedType === "sms") {
+            data = "smsto:" + document.getElementById("input-sms").value;
+        }
+        else if (selectedType === "wifi") {
+            if (!validateInput(selectedType, document.getElementById("input-wifi-ssid").value)) {
+                return;
+            }
+        }
+         else if (!validateInput(selectedType, data)) {
+            return;
+        }
+
+        showLoading();
+
+        setTimeout(() => {
+            try {
+                const qrSize = 256;
+
+                if (qrcodeInstance) {
+                    qrcodeInstance.clear();
+                }
+
+                // Remove the placeholder before generating the QR code
+                qrcodeContainer.innerHTML = "";
+
+                qrcodeInstance = new QRCode(qrcodeContainer, {
+                    text: data,
+                    width: qrSize,
+                    height: qrSize,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                errorMessage.textContent = "";
+                downloadButton.parentElement.classList.add("generated");
+            } catch (error) {
+                errorMessage.textContent = "Error generating QR code. Details: " + error.message;
+                console.error("QR code generation error:", error);
+            } finally {
+                hideLoading();
+            }
+        }, 200);
+    });
+
+    downloadButton.addEventListener("click", function () {
+        if (!qrcodeInstance) {
+            errorMessage.textContent = "Generate QR code first.";
+            return;
+        }
+
+        const qrCodeCanvas = qrcodeContainer.querySelector("canvas");
+        if (!qrCodeCanvas) {
+            errorMessage.textContent = "QR Code not generated yet.";
+            return;
+        }
+
+        const dataURL = qrCodeCanvas.toDataURL("image/png");
+
+        const link = document.createElement("a");
+        link.href = dataURL;
+        link.download = "qrcode.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    resetButton.addEventListener("click", function () {
+        // Restore placeholder text of the current input
+        let inputElement = inputElements[selectedType];
+        if (inputElement) {
+            inputElement.placeholder = originalPlaceholders[selectedType];
+        }
+
+        // Clear input field of the current input
+        switch (selectedType) {
+            case "url":
+                document.getElementById("input-url").value = "";
+                break;
+            case "text":
+                document.getElementById("input-text").value = "";
+                break;
+            case "email":
+                document.getElementById("input-email").value = "";
+                break;
+            case "sms":
+                document.getElementById("input-sms").value = "";
+                break;
+            case "wifi":
+                document.getElementById("input-wifi-ssid").value = "";
+                document.getElementById("input-wifi-password").value = "";
+                break;
+            case "bitcoin":
+                document.getElementById("input-bitcoin").value = "";
+                break;
+            case "twitter":
+                document.getElementById("input-twitter").value = "";
+                break;
+            case "facebook":
+                document.getElementById("input-facebook").value = "";
+                break;
+            case "vcard":
+                document.getElementById("input-vcard").value = "";
+                break;
+        }
+
+
+        qrcodeContainer.innerHTML = "";
+        qrcodeContainer.appendChild(qrcodePlaceholder); // Restore the placeholder
+        errorMessage.textContent = "";
+        downloadButton.parentElement.classList.remove("generated");
+    });
+
+
+    function isValidURL(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    // Initial storage of input elements and placeholders
+    storeInputElements();
+
+	let isDragging = false;
+	let startX = 0;
+    let scrollLeft = 0; // Store scroll position
+
+	scrollmenu.addEventListener('mousedown', (e) => {
+		isDragging = true;
+		startX = e.pageX - scrollmenu.offsetLeft;
+        scrollLeft = scrollmenu.scrollLeft;
+		scrollmenu.style.cursor = 'grabbing';
+	});
+
+	scrollmenu.addEventListener('mouseleave', () => {
+		isDragging = false;
+		scrollmenu.style.cursor = 'grab';
+	});
+
+	scrollmenu.addEventListener('mouseup', () => {
+		isDragging = false;
+		scrollmenu.style.cursor = 'grab';
+	});
+
+	scrollmenu.addEventListener('mousemove', (e) => {
+		if (!isDragging) return;
+		e.preventDefault();
+		const x = e.pageX - scrollmenu.offsetLeft;
+		const walk = (x - startX) * 0.7; // Reduced multiplier for slower scroll
+
+        scrollmenu.scrollLeft = scrollLeft - walk;
+
+
+	});
+});
+  </script>
